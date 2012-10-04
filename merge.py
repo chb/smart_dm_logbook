@@ -5,14 +5,23 @@ Arjun Sanyal <arjun.sanyal@childrens.harvard.edu>
 
 """
 
+import os
+import sys
+
+base = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(base+'/healthvault/healthvault')
+
 import datetime
+import healthvault
 import pdb
+import random
+import settings
 from smart_client import oauth
 from smart_client.smart import SmartClient
 import urllib
 import web
 
-HV_SHELL_URL = 'https://account.healthvault-ppe.com'
+DEBUG_EMAIL = 'arjun@arjun.nu'
 
 # configuration
 SMART_SERVER_OAUTH = {
@@ -68,21 +77,29 @@ class Merge:
         return ret
 
     def _create_connection_request(self):
-        req_external_id = None  # the app's id for this request
-        req_friendly_name = None
-        req_secret_q = None
-        req_secret_a = None
-        req_id = None  # the hv id
-        hvconn = HVConn()
+        req_id = random.randint(1,9999999999)  # the app's id for this request
+        friendly_name = 'My Fun Connection Request'
+        secret_q = 'Your favorite color?'
+        secret_a = 'gray'  # spaces retained but case insensitive, single word best
+        hv_req_id = None  # the hv id
 
-    def _send_hv_req_id_email(self, email=None, hv_req_id):
+        hv_conn = healthvault.HVConn()
+        return hv_conn.createConnectRequest(
+            req_id,
+            friendly_name,
+            secret_q,
+            secret_a
+        )
+
+    def _get_hv_req_url(self, hv_req_id):
         # just display code don't send email, could also print out
         # url = 'https://shellhostname/redirect.aspx?target=CONNECT&targetqs=packageid%3dJKYZ-QNMN-VHRX-ZGNR-GZNH'
-        url = HV_SHELL_URL + \
+        return settings.HV_SHELL_URL + \
             "/redirect.aspx?target=CONNECT&targetqs=packageid%3d" + \
             hv_req_id
 
-        # display URL to click
+    def _send_hv_req_email(self):
+        pass
 
     def GET(self):
         client = self._get_smart_client(web.input().oauth_header)
@@ -90,42 +107,26 @@ class Merge:
         # keep a mapping between:
         # (smart-container, record ID) <--> (HV Record ID) and maintain
         # HV tokens are necessary for sustained access
+        header = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <script
+                src="http://sample-apps.smartplatforms.org/framework/smart/scripts/smart-api-client.js"></script>
+        </head>
+        <body>
+        """
 
-        meds = client.get_medications()
+        footer = """
+        </body>
+        </html>
+        """
 
-        # Find a list of all fulfillments for each med.
-        q = """
-            PREFIX dcterms:<http://purl.org/dc/terms/>
-            PREFIX sp:<http://smartplatforms.org/terms#>
-            PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-               SELECT  ?med ?name ?quant ?when
-               WHERE {
-                      ?med rdf:type sp:Medication .
-                      ?med sp:drugName ?medc.
-                      ?medc dcterms:title ?name.
-                      ?med sp:fulfillment ?fill.
-                      ?fill sp:dispenseDaysSupply ?quant.
-                      ?fill dcterms:date ?when.
-               }
-            """
-            header = """
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <script
-                  src="http://sample-apps.smartplatforms.org/framework/smart/scripts/smart-api-client.js"></script>
-            </head>
-            <body>
-            """
-
-            footer = """
-            </body>
-            </html>
-            """
-
-        # 1: create a connection request
-        return header + 'got here' + footer
-
+        # AKS: testing create a connection request
+        hv_req_id = self._create_connection_request()
+        url = self._get_hv_req_url(hv_req_id)
+        # https://account.healthvault-ppe.com/redirect.aspx?target=CONNECT&targetqs=packageid%3dJKTR-HVMJ-HHFR-XRZQ-GFQV
+        return header+'Click <a href="'+url+'">here</a> to authorize this app to connect to your HealthVault account'+footer
 
 
 # start up web.py
