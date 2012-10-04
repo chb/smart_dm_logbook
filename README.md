@@ -4,34 +4,18 @@ SMART Microsoft HealthVault Merge App
 
 Arjun Sanyal <arjun.sanyal@childrens.harvard.edu>
 
-Fixme old docs below:
+Implements a simple SMART REST app that establishes a connection to a
+user using the HealthVault [Patient Connect][] API. Once the connection
+is established it shows a set of patient-reported data (weights) and
+clinical data from the SMART Container in one interface.
 
-You can run this app inside the reference container by running it
-locally on port 8000.  You'll need the following python packages:
-web.py, rdflib, rdflibextras, and pyparsing.
+[Patient Connect](http://msdn.microsoft.com/en-us/library/jj551258.aspx)
 
-To get started on ubuntu, you can
-  apt-get install git-core python-webpy python-pyparsing python-setuptools
-  easy_install -U "rdflib>=3.0.0" rdfextras
+* Requirements
+  * Python 2.7 or above
+  * `web.py`
 
-To get started on Windows, you can:
-  * Install python 2.7: http://www.python.org/getit/
-  * Install git: http://code.google.com/p/msysgit/
-  * Install setuptools:  http://peak.telecommunity.com/dist/ez_setup.py (download + run)
-  * c:\pythonxx\Scripts\easy_install.exe web.py pyparsing rdflib rdfextras
-
-Now. obtain and launch reminder.py:
-  git clone https://github.com/chb/smart_rx_reminder.git
-  cd smart_rx_reminder
-  python reminder.py 8000
-
-Then log in to the reference container at:  
- http://sandbox.smartplatforms.org
-
-Launch the "Developers Sandbox" app, which will point at your locally
-hosted version of SMArt Rx Reminder.
-
-# Files reminder.py: 
-Implements a simple SMArt REST app, obtaining OAuth tokens from a
-browser-supplied cookie, fetching a medication list for the in-context
-patient, and doing some very simple processing.
+* To run `python merge.py 8000`
+* Then log in to the reference container: <http://sandbox.smartplatforms.org>
+* Launch the "Developers Sandbox" app, which will point at your locally
+  hosted version of this app

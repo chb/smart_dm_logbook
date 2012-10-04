@@ -12,6 +12,8 @@ from smart_client.smart import SmartClient
 import urllib
 import web
 
+HV_SHELL_URL = 'https://account.healthvault-ppe.com'
+
 # configuration
 SMART_SERVER_OAUTH = {
     'consumer_key': None,  # will fill this in later
@@ -65,8 +67,24 @@ class Merge:
         ret.record_id = oa_params['smart_record_id']
         return ret
 
+    def _create_connection_request(self):
+        req_external_id = None  # the app's id for this request
+        req_friendly_name = None
+        req_secret_q = None
+        req_secret_a = None
+        req_id = None  # the hv id
+        hvconn = HVConn()
+
+    def _send_hv_req_id_email(self, email=None, hv_req_id):
+        # just display code don't send email, could also print out
+        # url = 'https://shellhostname/redirect.aspx?target=CONNECT&targetqs=packageid%3dJKYZ-QNMN-VHRX-ZGNR-GZNH'
+        url = HV_SHELL_URL + \
+            "/redirect.aspx?target=CONNECT&targetqs=packageid%3d" + \
+            hv_req_id
+
+        # display URL to click
+
     def GET(self):
-        """ Real app here """
         client = self._get_smart_client(web.input().oauth_header)
 
         # keep a mapping between:
@@ -105,7 +123,7 @@ class Merge:
             </html>
             """
 
-        pdb.set_trace()
+        # 1: create a connection request
         return header + 'got here' + footer
 
 
