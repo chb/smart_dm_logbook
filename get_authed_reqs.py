@@ -23,12 +23,12 @@ if __name__ == "__main__":
     reqs = hv_conn.getAuthorizedConnectRequests()
     for req in reqs:
         person_id = req[0]
-        record_id = req[1]
+        hv_record_id = req[1]
         external_id = req[2]  # the random request_id we provided
 
         if DEBUG:
             print '>>> person_id: ' + person_id
-            print '>>> record_id: ' + record_id
+            print '>>> hv_record_id: ' + hv_record_id
             print '>>> external_id: ' + external_id
 
         # update the db with the person and record ids

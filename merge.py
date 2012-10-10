@@ -7,7 +7,6 @@ Arjun Sanyal <arjun.sanyal@childrens.harvard.edu>
 
 import os
 import sys
-
 base = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(base+'/healthvault/healthvault')
 
@@ -18,12 +17,12 @@ import random
 import settings
 from smart_client import oauth
 from smart_client.smart import SmartClient
+import sqlite3
 import urllib
 import web
 
 DEBUG_EMAIL = 'arjun@arjun.nu'
 
-# configuration
 SMART_SERVER_OAUTH = {
     'consumer_key': None,  # will fill this in later
     'consumer_secret': 'smartapp-secret'
@@ -34,7 +33,6 @@ SMART_SERVER_PARAMS = {
 }
 urls = ('/smartapp/index.html', 'Merge')
 
-# the main responder class
 class Merge:
     def _get_smart_client(self, smart_oauth_header):
         """Convenience function to initialize a new SmartClient"""
@@ -43,7 +41,6 @@ class Merge:
         except:
             return "Couldn't find a parameter to match the name 'oauth_header'"
 
-        # Pull out OAuth params from the header
         oa_params = oauth.parse_header(smart_oauth_header)
 
         # This is how we know...
@@ -76,37 +73,50 @@ class Merge:
         ret.record_id = oa_params['smart_record_id']
         return ret
 
-    def _create_connection_request(self):
-        req_id = random.randint(1,9999999999)  # the app's id for this request
-        friendly_name = 'My Fun Connection Request'
+    def _create_connection_request(self, smart_record_id):
+        # TODO: should we use a combination of smart container
+        # id and record_id here? what to use for container id?
+        # Use a random external_id for now
+        external_id = random.randint(1,9999999999)
+        # TODO: get these
+        friendly_name = 'Connection Request ' + str(external_id)
         secret_q = 'Your favorite color?'
         secret_a = 'gray'  # spaces retained but case insensitive, single word best
-        hv_req_id = None  # the hv id
 
         hv_conn = healthvault.HVConn()
-        return hv_conn.createConnectRequest(
-            req_id,
+        hv_id_code = hv_conn.createConnectRequest(
+            external_id,
             friendly_name,
             secret_q,
             secret_a
         )
 
-    def _get_hv_req_url(self, hv_req_id):
+        if hv_id_code:
+            conn = sqlite3.connect(
+                settings.REQ_DB_DIR +
+                '/' +
+                settings.REQ_DB_FILENAME
+            )
+            c = conn.cursor()
+            s = 'insert into requests values (?, ?, ?, ?, ?)'
+            c.execute(s, (external_id, smart_record_id, friendly_name, '', ''))
+            conn.commit()
+            conn.close()
+
+        return hv_id_code
+
+    def _get_hv_req_url(self, hv_id_code):
         # just display code don't send email, could also print out
         # url = 'https://shellhostname/redirect.aspx?target=CONNECT&targetqs=packageid%3dJKYZ-QNMN-VHRX-ZGNR-GZNH'
         return settings.HV_SHELL_URL + \
             "/redirect.aspx?target=CONNECT&targetqs=packageid%3d" + \
-            hv_req_id
+            hv_id_code
 
     def _send_hv_req_email(self):
         pass
 
     def GET(self):
         client = self._get_smart_client(web.input().oauth_header)
-
-        # keep a mapping between:
-        # (smart-container, record ID) <--> (HV Record ID) and maintain
-        # HV tokens are necessary for sustained access
         header = """
         <!DOCTYPE html>
         <html>
@@ -121,13 +131,13 @@ class Merge:
         </body>
         </html>
         """
-
-        # AKS: testing create a connection request
-        hv_req_id = self._create_connection_request()
-        url = self._get_hv_req_url(hv_req_id)
+        hv_id_code = self._create_connection_request(client.record_id)
+        url = self._get_hv_req_url(hv_id_code)
         # https://account.healthvault-ppe.com/redirect.aspx?target=CONNECT&targetqs=packageid%3dJKTR-HVMJ-HHFR-XRZQ-GFQV
-        return header+'Click <a href="'+url+'">here</a> to authorize this app to connect to your HealthVault account'+footer
-
+        return header + '<p>Your id code is: ' +hv_id_code +
+            '</p><p>Click <a href="' + url +
+            '">here</a> to authorize this app to connect to your HealthVault account</p>' +
+            footer
 
 # start up web.py
 app = web.application(urls, globals())
