@@ -79,7 +79,7 @@ class Merge:
         # Use a random external_id for now
         external_id = random.randint(1,9999999999)
         # TODO: get these
-        friendly_name = 'Connection Request ' + str(external_id)
+        friendly_name = 'Connection Request #' + str(external_id)
         secret_q = 'Your favorite color?'
         secret_a = 'gray'  # spaces retained but case insensitive, single word best
 
@@ -98,8 +98,9 @@ class Merge:
                 settings.REQ_DB_FILENAME
             )
             c = conn.cursor()
-            s = 'insert into requests values (?, ?, ?, ?, ?)'
-            c.execute(s, (external_id, smart_record_id, friendly_name, '', ''))
+            s = 'insert into requests values (?, ?, ?, ?, ?, ?)'
+            now = datetime.datetime.now().isoformat()
+            c.execute(s, (now, external_id, smart_record_id, friendly_name, '', ''))
             conn.commit()
             conn.close()
 
@@ -133,11 +134,12 @@ class Merge:
         """
         hv_id_code = self._create_connection_request(client.record_id)
         url = self._get_hv_req_url(hv_id_code)
-        # https://account.healthvault-ppe.com/redirect.aspx?target=CONNECT&targetqs=packageid%3dJKTR-HVMJ-HHFR-XRZQ-GFQV
-        return header + '<p>Your id code is: ' +hv_id_code +
-            '</p><p>Click <a href="' + url +
-            '">here</a> to authorize this app to connect to your HealthVault account</p>' +
-            footer
+        # https://account.healthvault-ppe.com/redirect.aspx?target=CONNECT&targetqs=packageid%3dJKKR-XKMX-TRTZ-XPGH-CNZQ
+        # ? or https://account.healthvault-ppe.com/patientconnect.aspx?action=GetQuestion
+        return header + '<p>Your id code is: ' +hv_id_code \
+            + '</p><p>Click <a target="_blank" href="' + url + \
+            '">here</a> to authorize this app to connect to your HealthVault account</p>' \
+            + footer
 
 # start up web.py
 app = web.application(urls, globals())

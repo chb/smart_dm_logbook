@@ -15,6 +15,8 @@ import sys
 base = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(base+'/healthvault/healthvault')
 import healthvault
+import settings
+import sqlite3
 
 DEBUG = True
 
@@ -27,10 +29,19 @@ if __name__ == "__main__":
         external_id = req[2]  # the random request_id we provided
 
         if DEBUG:
+            print 'Got an authed request:'
             print '>>> person_id: ' + person_id
             print '>>> hv_record_id: ' + hv_record_id
             print '>>> external_id: ' + external_id
 
         # update the db with the person and record ids
+        conn = sqlite3.connect(
+            settings.REQ_DB_DIR + '/' + settings.REQ_DB_FILENAME
+        )
+        c = conn.cursor()
+        s = 'update requests set person_id = ?, hv_record_id = ? where external_id = ?'
+        c.execute(s, (person_id, hv_record_id, external_id))
+        conn.commit()
+        conn.close()
 
     print """\nDone.."""

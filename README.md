@@ -18,7 +18,10 @@ Once the connection is established it shows a set of patient-reported data
 * Requirements
   * Python 2.7 or above
   * `web.py`
+  * SQLite3
 
+* To setup run `python setup.py` to create the SQLite3 request database
+  in /data
 * To run `python merge.py 8000`
 * Then log in to the reference container: <http://sandbox.smartplatforms.org>
 * Launch the "Developers Sandbox" app, which will point at your locally
