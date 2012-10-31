@@ -25,8 +25,12 @@ function Controller($scope, $http) {
           {'when': '2012-10-16T18:04:11', 'value': 7.9},
         ]
     } else {
-      $scope.params = {'wctoken': window.WCTOKEN};
+      $scope.params = {
+        'wctoken': window.WCTOKEN,
+        'oauth_header': window.OAUTH_HEADER
+      };
       $scope.name = window.NAME;
+
       $http.get('/getGlucoseMeasurements', {params: $scope.params})
            .success(function(data) {
              // todo: have a consistent standard for this array or {}}?
@@ -37,6 +41,17 @@ function Controller($scope, $http) {
              $scope.glucoses = glucoses;
            })
            .error(function(data, status) { alert('error in getGlucoseMeasurements'); })
+
+      $http.get('/getA1cs', {params: $scope.params})
+           .success(function(data) {
+             // todo: have a consistent standard for this array or {}}?
+             var A1cs = [];
+             data.forEach(function(d) {
+               A1cs.push({'when': d[0], 'value': d[1]});
+             })
+             $scope.A1cs = A1cs;
+           })
+           .error(function(data, status) { alert('error in getA1cs'); })
   }
 };
 Controller.$inject = ['$scope', '$http'];

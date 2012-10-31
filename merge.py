@@ -32,50 +32,54 @@ SMART_SERVER_OAUTH = {
 SMART_SERVER_PARAMS = {
     'api_base': None  # will fill this in later
 }
+
+# fixme: maybe use one class??
 urls = (
     '/smartapp/index.html', 'Merge',
-    '/getGlucoseMeasurements', 'getGlucoseMeasurements',
+    '/getGlucoseMeasurements', 'GetGlucoseMeasurements',
+    '/getA1cs', 'GetA1cs',
 )
 
+def _get_smart_client(smart_oauth_header):
+    """Convenience function to initialize a new SmartClient"""
+    try:
+        smart_oauth_header = urllib.unquote(smart_oauth_header)
+    except:
+        return "Couldn't find a parameter to match the name 'oauth_header'"
+
+    oa_params = oauth.parse_header(smart_oauth_header)
+
+    # This is how we know...
+    # 1. what container we're talking to
+    try:
+        SMART_SERVER_PARAMS['api_base'] = oa_params['smart_container_api_base']
+    except:
+        return "Couldn't find 'smart_contianer_api_base' in %s" % smart_oauth_header
+
+    # 2. what our app ID is
+    try:
+        SMART_SERVER_OAUTH['consumer_key'] = oa_params['smart_app_id']
+    except:
+        return "Couldn't find 'smart_app_id' in %s" % smart_oauth_header
+
+    # (For demo purposes, we're assuming a hard-coded consumer secret, but
+    #  in real life we'd look this up in some config or DB now...)
+    resource_tokens = {
+        'oauth_token': oa_params['smart_oauth_token'],
+        'oauth_token_secret': oa_params['smart_oauth_token_secret']
+    }
+
+    ret = SmartClient(
+        SMART_SERVER_OAUTH['consumer_key'],
+        SMART_SERVER_PARAMS,
+        SMART_SERVER_OAUTH,
+        resource_tokens
+    )
+
+    ret.record_id = oa_params['smart_record_id']
+    return ret
+
 class Merge:
-    def _get_smart_client(self, smart_oauth_header):
-        """Convenience function to initialize a new SmartClient"""
-        try:
-            smart_oauth_header = urllib.unquote(smart_oauth_header)
-        except:
-            return "Couldn't find a parameter to match the name 'oauth_header'"
-
-        oa_params = oauth.parse_header(smart_oauth_header)
-
-        # This is how we know...
-        # 1. what container we're talking to
-        try:
-            SMART_SERVER_PARAMS['api_base'] = oa_params['smart_container_api_base']
-        except:
-            return "Couldn't find 'smart_contianer_api_base' in %s" % smart_oauth_header
-
-        # 2. what our app ID is
-        try:
-            SMART_SERVER_OAUTH['consumer_key'] = oa_params['smart_app_id']
-        except:
-            return "Couldn't find 'smart_app_id' in %s" % smart_oauth_header
-
-        # (For demo purposes, we're assuming a hard-coded consumer secret, but
-        #  in real life we'd look this up in some config or DB now...)
-        resource_tokens = {
-            'oauth_token': oa_params['smart_oauth_token'],
-            'oauth_token_secret': oa_params['smart_oauth_token_secret']
-        }
-
-        ret = SmartClient(
-            SMART_SERVER_OAUTH['consumer_key'],
-            SMART_SERVER_PARAMS,
-            SMART_SERVER_OAUTH,
-            resource_tokens
-        )
-
-        ret.record_id = oa_params['smart_record_id']
-        return ret
 
     def _get_hv_ids(self, smart_record_id):
         conn = sqlite3.connect(settings.REQ_DB_DIR + '/' + settings.REQ_DB_FILENAME)
@@ -109,11 +113,7 @@ class Merge:
         )
 
         if hv_id_code:
-            conn = sqlite3.connect(
-                settings.REQ_DB_DIR +
-                '/' +
-                settings.REQ_DB_FILENAME
-            )
+            conn = sqlite3.connect( settings.REQ_DB_DIR + '/' + settings.REQ_DB_FILENAME)
             c = conn.cursor()
             s = 'insert into requests values (?, ?, ?, ?, ?, ?)'
             now = datetime.datetime.now().isoformat()
@@ -134,7 +134,7 @@ class Merge:
         pass
 
     def GET(self):
-        client = self._get_smart_client(web.input().oauth_header)
+        client = _get_smart_client(web.input().oauth_header)
         header = """
         <!DOCTYPE html>
         <html>
@@ -154,11 +154,8 @@ class Merge:
             # fixme: rename! using it for person_id
             wctoken = hv_ids['person_id']
             name = hv_conn.person.name
-            return main(wctoken, name)
-            #return header + '<p>Your HV person_id is: ' + hv_ids['person_id'] +'</p>' \
-                    #+ '<p>Your HV record id is: ' + hv_ids['record_id'] + '</p>' \
-                    #+ 'something....' \
-                    #+ footer
+            oauth_header = web.input().oauth_header
+            return main(wctoken, name, oauth_header)
         else:
             hv_id_code = self._create_connection_request(client.record_id)
             url = self._get_hv_req_url(hv_id_code)
@@ -169,12 +166,22 @@ class Merge:
                 '">here</a> to authorize this app to connect to your HealthVault account</p>' \
                 + footer
 
-class getGlucoseMeasurements:
+class GetGlucoseMeasurements:
     def GET(self):
-        person_id = web.ctx.query.split('=')[1]
+        person_id = web.input().wctoken
         hvconn = healthvault.HVConn(offline_person_id=person_id)
         hvconn.getGlucoseMeasurements()
         res = hvconn.person.glucoses
+        web.header('Content-Type', 'application/json')
+        return json.dumps(res)
+
+class GetA1cs:
+    def GET(self):
+        client = _get_smart_client(web.input().oauth_header)
+        #labs = client.get_lab_results()
+        #pdb.set_trace()
+        # mock
+        res = [["2012-09-30T10:00:00", 6]]
         web.header('Content-Type', 'application/json')
         return json.dumps(res)
 

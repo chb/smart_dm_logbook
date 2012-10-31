@@ -1,7 +1,8 @@
 'use strict';
 
+// with added A1c overlay
 angular.module('App.directives', [])
-  .directive('glucoseDay', function() {
+  .directive('glucoseDay2', function() {
     return {
       restrict: 'E',
       terminal: true,
@@ -68,6 +69,24 @@ angular.module('App.directives', [])
                 .attr("cx", function(d) { return x(getHour(d.when)); })
                 .attr("cy", function(d) { return y(d.value); })
                 .style("fill", function(d) { return color(); });
+
+          // mock a1c overlay
+          svg.append("rect")
+              .attr("class", "a1c")
+              .attr("transform", "translate(0," + (height / 7) + ")")
+              .attr("x", 0)
+              .attr("y", 0)
+              .attr("height", (height / 7) * 6) // fixme: mock
+              .attr("width", width)
+              .attr("fill", "gray")
+              .attr("opacity", "0.2")
+
+          svg.append("text")
+              .attr("class", "label")
+              .attr("x", width)
+              .attr("y", 100)
+              .style("text-anchor", "end")
+              .text("Last A1c: " + "6");
         });
       }
     }

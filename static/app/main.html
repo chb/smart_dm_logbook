@@ -1,4 +1,4 @@
-$def with (wctoken, name)
+$def with (wctoken, name, oauth_header)
 
 <!doctype html>
 <html lang="en" ng-app="App">
@@ -14,7 +14,7 @@ $def with (wctoken, name)
 
     <h3>Glucose by Time of Day</h3>
     <div>
-      <glucose-day val='glucoses'></glucose-day>
+      <glucose-day2 val='glucoses'></glucose-day>
     </div>
 
     <h3>Glucose Histogram</h3>
@@ -22,52 +22,52 @@ $def with (wctoken, name)
       <glucose-histogram val='glucoses'></glucose-histogram>
     </div>
 
-    <h3>Add a New Glucose Measurement</h3>
-    <form name="form" class="css-form" novalidate>
-      Date:
-      <input type='number' ng-model='measurement.month' name='mMonth'
-      min='1' max='12' integer />
-      -
-      <input type='number' ng-model='measurement.day' name='mDay'
-      min='1' max='31' integer />
-      -
-      <input type='number' ng-model='measurement.year' name='mYear'
-      min='2000' max='2013' integer />
+    <!--<h3>Add a New Glucose Measurement</h3>-->
+    <!--<form name="form" class="css-form" novalidate>-->
+      <!--Date:-->
+      <!--<input type='number' ng-model='measurement.month' name='mMonth'-->
+      <!--min='1' max='12' integer />-->
+      <!----->
+      <!--<input type='number' ng-model='measurement.day' name='mDay'-->
+      <!--min='1' max='31' integer />-->
+      <!----->
+      <!--<input type='number' ng-model='measurement.year' name='mYear'-->
+      <!--min='2000' max='2013' integer />-->
 
-      &nbsp;
-      &nbsp;
-      &nbsp;
+      <!--&nbsp;-->
+      <!--&nbsp;-->
+      <!--&nbsp;-->
 
-      Time:
-      <input type='number' ng-model='measurement.hour12' name='mHour12'
-      min='1' max='12' integer />
-      :
-      <input type='number' ng-model='measurement.minute' name='mMinute'
-      min='0' max='59' integer />
+      <!--Time:-->
+      <!--<input type='number' ng-model='measurement.hour12' name='mHour12'-->
+      <!--min='1' max='12' integer />-->
+      <!--:-->
+      <!--<input type='number' ng-model='measurement.minute' name='mMinute'-->
+      <!--min='0' max='59' integer />-->
 
-      <input type="radio" ng-model="measurement.am_pm" value="am" checked/> am
-      <input type="radio" ng-model="measurement.am_pm" value="pm" /> pm
+      <!--<input type="radio" ng-model="measurement.am_pm" value="am" checked/> am-->
+      <!--<input type="radio" ng-model="measurement.am_pm" value="pm" /> pm-->
 
-      Value:
-      <!-- fixme: use smart-float here: http://docs.angularjs.org/guide/forms -->
-      <input type='number' ng-model='measurement.value' name='mValue' min='0' max='500' integer />
-      &nbsp;
-      <input type="radio" ng-model="measurement.unit" value="mg_dl" checked/>mg/dL<br />
-      <input type="radio" ng-model="measurement.unit" value="mmol_per_l" />mmol/L
-      &nbsp;
-      <input type="radio" ng-model="measurement.type" value="whole_blood" checked/>whole blood
-      <input type="radio" ng-model="measurement.type" value="plasma" />plasma<br />
-      <br>
-      Note:
-      <input type="textarea" ng-model="measurement.note" name="mNote"/>
+      <!--Value:-->
+      <!--[> fixme: use smart-float here: http://docs.angularjs.org/guide/forms <]-->
+      <!--<input type='number' ng-model='measurement.value' name='mValue' min='0' max='500' integer />-->
+      <!--&nbsp;-->
+      <!--<input type="radio" ng-model="measurement.unit" value="mg_dl" checked/>mg/dL<br />-->
+      <!--<input type="radio" ng-model="measurement.unit" value="mmol_per_l" />mmol/L-->
+      <!--&nbsp;-->
+      <!--<input type="radio" ng-model="measurement.type" value="whole_blood" checked/>whole blood-->
+      <!--<input type="radio" ng-model="measurement.type" value="plasma" />plasma<br />-->
+      <!--<br>-->
+      <!--Note:-->
+      <!--<input type="textarea" ng-model="measurement.note" name="mNote"/>-->
 
-      <br />
-      <br />
+      <!--<br />-->
+      <!--<br />-->
 
-      <button ng-click="reset()" ng-disabled="isUnchanged(user)">Reset Form</button>
-      <button ng-click="update(user)"
-              ng-disabled="form. || isUnchanged(user)">Save Measurement</button>
-    </form>
+      <!--<button ng-click="reset()" ng-disabled="isUnchanged(user)">Reset Form</button>-->
+      <!--<button ng-click="update(user)"-->
+              <!--ng-disabled="form. || isUnchanged(user)">Save Measurement</button>-->
+    <!--</form>-->
 
     <h3>Previous Measurements</h3>
     <div>
@@ -81,9 +81,10 @@ $def with (wctoken, name)
 
 
 
-  <!-- FIXME: hackish passing of wctoken from django to angular -->
+  <!-- FIXME: hackish passing -->
   <script> window.WCTOKEN = '$wctoken' </script>
   <script> window.NAME = '$name' </script>
+  <script> window.OAUTH_HEADER = '$oauth_header' </script>
 
   <script src="/static/app/lib/angular/angular.js"></script>
   <script src="/static/app/lib/d3.v2.js"></script>
