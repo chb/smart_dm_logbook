@@ -73,6 +73,21 @@ class Merge:
         ret.record_id = oa_params['smart_record_id']
         return ret
 
+    def _get_hv_ids(self, smart_record_id):
+        conn = sqlite3.connect(settings.REQ_DB_DIR + '/' + settings.REQ_DB_FILENAME)
+        c = conn.cursor()
+        s = 'select person_id, hv_record_id from requests where smart_record_id = ? limit 1'
+        res = c.execute(s, (smart_record_id, ))
+        row = res.fetchone()
+        conn.commit()
+        conn.close()
+        #import pdb; pdb.set_trace()
+        if row:
+            return {'person_id': row[0],
+                    'record_id': row[1]}
+        else:
+            return None
+
     def _create_connection_request(self, smart_record_id):
         # TODO: should we use a combination of smart container
         # id and record_id here? what to use for container id?
@@ -127,19 +142,24 @@ class Merge:
         </head>
         <body>
         """
+        footer = """</body></html>"""
 
-        footer = """
-        </body>
-        </html>
-        """
-        hv_id_code = self._create_connection_request(client.record_id)
-        url = self._get_hv_req_url(hv_id_code)
-        # https://account.healthvault-ppe.com/redirect.aspx?target=CONNECT&targetqs=packageid%3dJKKR-XKMX-TRTZ-XPGH-CNZQ
-        # ? or https://account.healthvault-ppe.com/patientconnect.aspx?action=GetQuestion
-        return header + '<p>Your id code is: ' +hv_id_code \
-            + '</p><p>Click <a target="_blank" href="' + url + \
-            '">here</a> to authorize this app to connect to your HealthVault account</p>' \
-            + footer
+        hv_ids = self._get_hv_ids(client.record_id)
+        if hv_ids:
+            # show something
+            return header + '<p>Your HV person_id is: ' + hv_ids['person_id'] +'</p>' \
+                    + '<p>Your HV record id is: ' + hv_ids['record_id'] + '</p>' \
+                    + 'something....' \
+                    + footer
+        else:
+            hv_id_code = self._create_connection_request(client.record_id)
+            url = self._get_hv_req_url(hv_id_code)
+            # https://account.healthvault-ppe.com/redirect.aspx?target=CONNECT&targetqs=packageid%3dJKKR-XKMX-TRTZ-XPGH-CNZQ
+            # ? or https://account.healthvault-ppe.com/patientconnect.aspx?action=GetQuestion
+            return header + '<p>Your id code is: ' +hv_id_code \
+                + '</p><p>Click <a target="_blank" href="' + url + \
+                '">here</a> to authorize this app to connect to your HealthVault account</p>' \
+                + footer
 
 # start up web.py
 app = web.application(urls, globals())
