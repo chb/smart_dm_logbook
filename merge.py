@@ -12,6 +12,7 @@ sys.path.append(base+'/healthvault/healthvault')
 
 import datetime
 import healthvault
+import json
 import pdb
 import random
 import settings
@@ -31,7 +32,10 @@ SMART_SERVER_OAUTH = {
 SMART_SERVER_PARAMS = {
     'api_base': None  # will fill this in later
 }
-urls = ('/smartapp/index.html', 'Merge')
+urls = (
+    '/smartapp/index.html', 'Merge',
+    '/getGlucoseMeasurements', 'getGlucoseMeasurements',
+)
 
 class Merge:
     def _get_smart_client(self, smart_oauth_header):
@@ -81,10 +85,8 @@ class Merge:
         row = res.fetchone()
         conn.commit()
         conn.close()
-        #import pdb; pdb.set_trace()
         if row:
-            return {'person_id': row[0],
-                    'record_id': row[1]}
+            return {'person_id': row[0], 'record_id': row[1]}
         else:
             return None
 
@@ -147,10 +149,16 @@ class Merge:
         hv_ids = self._get_hv_ids(client.record_id)
         if hv_ids:
             # show something
-            return header + '<p>Your HV person_id is: ' + hv_ids['person_id'] +'</p>' \
-                    + '<p>Your HV record id is: ' + hv_ids['record_id'] + '</p>' \
-                    + 'something....' \
-                    + footer
+            hv_conn = healthvault.HVConn(offline_person_id=hv_ids['person_id'])
+            main = web.template.frender('static/app/main.html')
+            # fixme: rename! using it for person_id
+            wctoken = hv_ids['person_id']
+            name = hv_conn.person.name
+            return main(wctoken, name)
+            #return header + '<p>Your HV person_id is: ' + hv_ids['person_id'] +'</p>' \
+                    #+ '<p>Your HV record id is: ' + hv_ids['record_id'] + '</p>' \
+                    #+ 'something....' \
+                    #+ footer
         else:
             hv_id_code = self._create_connection_request(client.record_id)
             url = self._get_hv_req_url(hv_id_code)
@@ -160,6 +168,15 @@ class Merge:
                 + '</p><p>Click <a target="_blank" href="' + url + \
                 '">here</a> to authorize this app to connect to your HealthVault account</p>' \
                 + footer
+
+class getGlucoseMeasurements:
+    def GET(self):
+        person_id = web.ctx.query.split('=')[1]
+        hvconn = healthvault.HVConn(offline_person_id=person_id)
+        hvconn.getGlucoseMeasurements()
+        res = hvconn.person.glucoses
+        web.header('Content-Type', 'application/json')
+        return json.dumps(res)
 
 # start up web.py
 app = web.application(urls, globals())
