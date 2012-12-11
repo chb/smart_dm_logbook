@@ -73,10 +73,10 @@ angular.module('App.directives', [])
           // mock a1c overlay
           svg.append("rect")
               .attr("class", "a1c")
-              .attr("transform", "translate(0," + (height / 7) + ")")
+              .attr("transform", "translate(0," + (height / 8) * 2 + ")")
               .attr("x", 0)
               .attr("y", 0)
-              .attr("height", (height / 7) * 6) // fixme: mock
+              .attr("height", (height / 8) * 6) // fixme: mock
               .attr("width", width)
               .attr("fill", "gray")
               .attr("opacity", "0.2")
@@ -84,7 +84,7 @@ angular.module('App.directives', [])
           svg.append("text")
               .attr("class", "label")
               .attr("x", width)
-              .attr("y", 100)
+              .attr("y", 120)
               .style("text-anchor", "end")
               .text("Last A1c: " + "6");
         });
@@ -115,7 +115,7 @@ angular.module('App.directives', [])
         var x = d3.scale.quantize().domain(x_domain).range(x_domain);
         var y = d3.scale.linear().range([height, 0]);
         var color = d3.scale.category10();
-        var yAxis = d3.svg.axis().scale(y).orient("left");
+        var yAxis = d3.svg.axis().scale(y).orient("left").tickFormat(d3.format('1d'));
         // aks hack for xAxis
         var x_scale_hack = d3.scale.linear().range([0, width]);
         var xAxis = d3.svg.axis().scale(x_scale_hack).orient("bottom").tickValues(x_domain);
@@ -180,7 +180,7 @@ angular.module('App.directives', [])
               .enter().append("rect")
                 .attr("class", "bar")
                 .attr("width", 90)
-                .attr("x", function(d) { return (x(d[0]) * 90 - 90); })
+                .attr("x", function(d) { return (x(d[0]) * 90); })
                 .attr("y", function(d) { return y(d[1]); })
                 .attr("height", function(d) { return height - y(d[1]); });
         });

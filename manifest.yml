@@ -1,0 +1,14 @@
+--- 
+applications: 
+  .: 
+    framework: 
+      name: wsgi
+      info: 
+        exec: 
+        mem: 64M
+        description: Python WSGI Application
+    instances: 1
+    infra: aws
+    name: smart-hv-merge
+    mem: 64M
+    url: ${name}.${target-base}

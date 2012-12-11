@@ -1,0 +1,4 @@
+pycrypto==2.6
+web.py==0.37
+rdflib==3.2.0
+rdfextras==0.1
