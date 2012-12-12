@@ -25,11 +25,15 @@ function Controller($scope, $http) {
           {'when': '2012-10-16T18:04:11', 'value': 7.9},
         ]
     } else {
+      // main init
       $scope.params = {
-        'wctoken': window.WCTOKEN,
-        'oauth_header': window.OAUTH_HEADER
+        'wctoken': sessionStorage.getItem('wctoken'),
+        'auth_token': sessionStorage.getItem('auth_token'),
+        'shared_secret': sessionStorage.getItem('shared_secret'),
+        'record_id': sessionStorage.getItem('record_id')
       };
-      $scope.name = window.NAME;
+      $scope.name = sessionStorage.getItem('name');
+
 
       $http.get('/getGlucoseMeasurements', {params: $scope.params})
            .success(function(data) {

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en" ng-app="App">
+<head>
+  <meta charset="utf-8">
+  <title>{[{name}]}'s Glucose Logbook</title>
+  <link rel="stylesheet" href="/static/css/app.css"/>
+</head>
+<body>
+
+  <div ng-controller="Controller">
+    <h3>Glucose by Time of Day</h3>
+    <div>
+      <glucose-day2 val='glucoses'></glucose-day>
+    </div>
+
+    <h3>Glucose Histogram</h3>
+    <div>
+      <glucose-histogram val='glucoses'></glucose-histogram>
+    </div>
+
+    <h3>Previous Measurements</h3>
+    <div>
+      <ul>
+        <li ng-repeat="glucose in glucoses"><code>{[{ glucose.when }]} &mdash; {[{ glucose.value }]} mmol/L</code></li>
+      </ul>
+    </div>
+  </div>
+
+
+  <!-- Save tokens in sessionStorage -->
+  <script>
+    sessionStorage.setItem('wctoken', '{{wctoken}}');
+    sessionStorage.setItem('name', '{{name}}');
+    sessionStorage.setItem('person_id', '{{person_id}}');
+    sessionStorage.setItem('record_id', '{{selected_record_id}}');
+    sessionStorage.setItem('auth_token', '{{auth_token}}');
+    sessionStorage.setItem('shared_secret', '{{shared_secret}}');
+  </script>
+
+  <script src="/static/lib/angular/angular.js"></script>
+  <script src="/static/lib/d3.v2.js"></script>
+  <script src="/static/js/app.js"></script>
+  <script src="/static/js/controllers.js"></script>
+  <script src="/static/js/directives.js"></script>
+</body>
+</html>

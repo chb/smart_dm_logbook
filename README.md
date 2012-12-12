@@ -1,4 +1,13 @@
 
+FIXME
+=====
+
+- `af logs smart-hv-merge --all` sometimes works, wait a few minutes if
+  not and try to restart from AF control panel.
+
+- Create a second "mappings" table and don't overload requests
+
+
 SMART Microsoft HealthVault Merge App
 --------------------------------------
 

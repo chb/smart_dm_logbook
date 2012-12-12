@@ -1,7 +1,11 @@
 """
-SMART HealthVault Merge App
+SMART Merge App
 
 Arjun Sanyal <arjun.sanyal@childrens.harvard.edu>
+
+FIXME
+- don't use global functions
+- in _get_smart_client use proper exceptions, not just string returns
 
 """
 
@@ -20,9 +24,31 @@ from smart_client import oauth
 from smart_client.smart import SmartClient
 import sqlite3
 import urllib
-import web
+import flask
+import platform
 
-DEBUG_EMAIL = 'arjun@arjun.nu'
+# Are we running on AppFog? (imprecise) - DRY!
+AF_PLATFORM = 'Linux-3.2.0-23-virtual-x86_64-with-Ubuntu-12.04-precise'
+if platform.platform() == AF_PLATFORM:
+    AF_P = True
+    SERVER_NAME = 'smart-hv-patient.aws.af.cm'
+    app.config['SERVER_NAME'] = SERVER_NAME
+    PORT=80
+else:
+    AF_P = False
+    PORT=8000
+
+# Note: using ./app for both the templates and static files
+# AF needs "application" here - DRY!
+application = app = flask.Flask(
+    'wsgi',
+    static_folder='app',
+    static_url_path='/static',
+    template_folder='app'
+)
+app.debug = True
+
+######################################################################
 
 SMART_SERVER_OAUTH = {
     'consumer_key': None,  # will fill this in later
@@ -33,14 +59,10 @@ SMART_SERVER_PARAMS = {
     'api_base': None  # will fill this in later
 }
 
-# fixme: maybe use one class??
-urls = (
-    '/smartapp/index.html', 'Merge',
-    '/getGlucoseMeasurements', 'GetGlucoseMeasurements',
-    '/getA1cs', 'GetA1cs',
-)
-
 def _get_smart_client(smart_oauth_header):
+    if smart_oauth_header == '':
+        return "No smart_oauth_header"
+
     """Convenience function to initialize a new SmartClient"""
     try:
         smart_oauth_header = urllib.unquote(smart_oauth_header)
@@ -79,119 +101,139 @@ def _get_smart_client(smart_oauth_header):
     ret.record_id = oa_params['smart_record_id']
     return ret
 
-class Merge:
+######################################################################
 
-    def _get_hv_ids(self, smart_record_id):
-        conn = sqlite3.connect(settings.REQ_DB_DIR + '/' + settings.REQ_DB_FILENAME)
+def _get_hv_ids(smart_record_id):
+    conn = sqlite3.connect(settings.REQ_DB_DIR + '/' + settings.REQ_DB_FILENAME)
+    c = conn.cursor()
+    s = 'select person_id, hv_record_id from requests where smart_record_id = ? limit 1'
+    res = c.execute(s, (smart_record_id, ))
+    row = res.fetchone()
+    conn.commit()
+    conn.close()
+    if row:
+        return {'person_id': row[0], 'record_id': row[1]}
+    else:
+        return None
+
+def _create_connection_request(smart_record_id):
+    # TODO: should we use a combination of smart container
+    # id and record_id here? what to use for container id?
+    # Use a random external_id for now
+    external_id = random.randint(1,9999999999)
+    # TODO: get these
+    friendly_name = 'Connection Request #' + str(external_id)
+    secret_q = 'Your favorite color?'
+    secret_a = 'gray'  # spaces retained but case insensitive, single word best
+
+    hv_conn = healthvault.HVConn()
+    hv_id_code = hv_conn.createConnectRequest(
+        external_id,
+        friendly_name,
+        secret_q,
+        secret_a
+    )
+
+    if hv_id_code:
+        conn = sqlite3.connect( settings.REQ_DB_DIR + '/' + settings.REQ_DB_FILENAME)
         c = conn.cursor()
-        s = 'select person_id, hv_record_id from requests where smart_record_id = ? limit 1'
-        res = c.execute(s, (smart_record_id, ))
-        row = res.fetchone()
+        s = 'insert into requests values (?, ?, ?, ?, ?, ?)'
+        now = datetime.datetime.now().isoformat()
+        c.execute(s, (now, external_id, smart_record_id, friendly_name, '', ''))
         conn.commit()
         conn.close()
-        if row:
-            return {'person_id': row[0], 'record_id': row[1]}
-        else:
-            return None
 
-    def _create_connection_request(self, smart_record_id):
-        # TODO: should we use a combination of smart container
-        # id and record_id here? what to use for container id?
-        # Use a random external_id for now
-        external_id = random.randint(1,9999999999)
-        # TODO: get these
-        friendly_name = 'Connection Request #' + str(external_id)
-        secret_q = 'Your favorite color?'
-        secret_a = 'gray'  # spaces retained but case insensitive, single word best
+    return hv_id_code
 
-        hv_conn = healthvault.HVConn()
-        hv_id_code = hv_conn.createConnectRequest(
-            external_id,
-            friendly_name,
-            secret_q,
-            secret_a
+def _get_hv_req_url(hv_id_code):
+    # just display code don't send email, could also print out
+    # url = 'https://shellhostname/redirect.aspx?target=CONNECT&targetqs=packageid%3dJKYZ-QNMN-VHRX-ZGNR-GZNH'
+    return settings.HV_SHELL_URL + \
+        "/redirect.aspx?target=CONNECT&targetqs=packageid%3d" + \
+        hv_id_code
+
+def _send_hv_req_email():
+    pass
+
+######################################################################
+
+@app.route('/smartapp/index.html')
+def index():
+    client = _get_smart_client(flask.request.args.get('oauth_header', ''))
+    header = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <script
+            src="http://sample-apps.smartplatforms.org/framework/smart/scripts/smart-api-client.js"></script>
+    </head>
+    <body>
+    """
+    footer = """</body></html>"""
+
+    hv_ids = _get_hv_ids(client.record_id)
+    if hv_ids:
+        # show something
+        hvconn = healthvault.HVConn(offline_person_id=hv_ids['person_id'])
+
+        ## FIXME: rename! using it for person_id
+        wctoken = hv_ids['person_id']
+
+        return flask.render_template(
+            'main.html',
+            wctoken=wctoken,
+            name=hvconn.person.name,
+            person_id=hvconn.person.person_id,
+            selected_record_id=hvconn.person.selected_record_id,
+            auth_token=hvconn._auth_token,
+            shared_secret=hvconn._shared_secret
         )
+    else:
+        hv_id_code = _create_connection_request(client.record_id)
+        url = _get_hv_req_url(hv_id_code)
+        # https://account.healthvault-ppe.com/redirect.aspx?target=CONNECT&targetqs=packageid%3dJKKR-XKMX-TRTZ-XPGH-CNZQ
+        # ? or https://account.healthvault-ppe.com/patientconnect.aspx?action=GetQuestion
+        return header + '<p>Your id code is: ' +hv_id_code \
+            + '</p><p>Click <a target="_blank" href="' + url + \
+            '">here</a> to authorize this app to connect to your HealthVault account</p>' \
+            + footer
 
-        if hv_id_code:
-            conn = sqlite3.connect( settings.REQ_DB_DIR + '/' + settings.REQ_DB_FILENAME)
-            c = conn.cursor()
-            s = 'insert into requests values (?, ?, ?, ?, ?, ?)'
-            now = datetime.datetime.now().isoformat()
-            c.execute(s, (now, external_id, smart_record_id, friendly_name, '', ''))
-            conn.commit()
-            conn.close()
+@app.route('/getGlucoseMeasurements')
+def getGlucoseMeasurements():
+    g = flask.request.args.get
+    hvconn = healthvault.HVConn(user_auth_token=g('wctoken'),
+        record_id=g('record_id'),
+        auth_token=g('auth_token'),
+        shared_secret=g('shared_secret'),
+        get_person_info_p=False)
+    hvconn.getGlucoseMeasurements()
+    # don't use flask's builtin jsonify function... it creates
+    # one big dict not an array for these
+    resp = flask.make_response()
+    resp.data = json.dumps(hvconn.person.glucoses)
+    resp.mimetype = 'application/json'
+    return resp
 
-        return hv_id_code
+@app.route('/getA1cs')
+def getA1cs():
+    g = flask.request.args.get
+    hvconn = healthvault.HVConn(user_auth_token=g('wctoken'),
+        record_id=g('record_id'),
+        auth_token=g('auth_token'),
+        shared_secret=g('shared_secret'),
+        get_person_info_p=False)
+    hvconn.getGlucoseMeasurements()
+    # don't use flask's builtin jsonify function... it creates
+    # one big dict not an array for these
+    resp = flask.make_response()
+    # labs = client.get_lab_results()
+    # mock
+    a1c = [["2012-09-30T10:00:00", 6]]
+    resp.data = json.dumps(a1c)
+    resp.mimetype = 'application/json'
+    return resp
 
-    def _get_hv_req_url(self, hv_id_code):
-        # just display code don't send email, could also print out
-        # url = 'https://shellhostname/redirect.aspx?target=CONNECT&targetqs=packageid%3dJKYZ-QNMN-VHRX-ZGNR-GZNH'
-        return settings.HV_SHELL_URL + \
-            "/redirect.aspx?target=CONNECT&targetqs=packageid%3d" + \
-            hv_id_code
+# Start Flask and run on port 80 for consistency with AF
+if __name__ == '__main__':
+    app.run(port=PORT)
 
-    def _send_hv_req_email(self):
-        pass
-
-    def GET(self):
-        client = _get_smart_client(web.input().oauth_header)
-        header = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <script
-                src="http://sample-apps.smartplatforms.org/framework/smart/scripts/smart-api-client.js"></script>
-        </head>
-        <body>
-        """
-        footer = """</body></html>"""
-
-        hv_ids = self._get_hv_ids(client.record_id)
-        if hv_ids:
-            # show something
-            hv_conn = healthvault.HVConn(offline_person_id=hv_ids['person_id'])
-            main = web.template.frender('static/app/main.html')
-            # fixme: rename! using it for person_id
-            wctoken = hv_ids['person_id']
-            name = hv_conn.person.name
-            oauth_header = web.input().oauth_header
-            return main(wctoken, name, oauth_header)
-        else:
-            hv_id_code = self._create_connection_request(client.record_id)
-            url = self._get_hv_req_url(hv_id_code)
-            # https://account.healthvault-ppe.com/redirect.aspx?target=CONNECT&targetqs=packageid%3dJKKR-XKMX-TRTZ-XPGH-CNZQ
-            # ? or https://account.healthvault-ppe.com/patientconnect.aspx?action=GetQuestion
-            return header + '<p>Your id code is: ' +hv_id_code \
-                + '</p><p>Click <a target="_blank" href="' + url + \
-                '">here</a> to authorize this app to connect to your HealthVault account</p>' \
-                + footer
-
-class GetGlucoseMeasurements:
-    def GET(self):
-        person_id = web.input().wctoken
-        hvconn = healthvault.HVConn(offline_person_id=person_id)
-        hvconn.getGlucoseMeasurements()
-        res = hvconn.person.glucoses
-        web.header('Content-Type', 'application/json')
-        return json.dumps(res)
-
-class GetA1cs:
-    def GET(self):
-        client = _get_smart_client(web.input().oauth_header)
-        #labs = client.get_lab_results()
-        #pdb.set_trace()
-        # mock
-        res = [["2012-09-30T10:00:00", 6]]
-        web.header('Content-Type', 'application/json')
-        return json.dumps(res)
-
-# start up web.py
-app = web.application(urls, globals())
-web.config.debug = True
-#if __name__ == "__main__":
-    #app.run()
-#else:
-    #application = app.wsgifunc()
-
-# hack for AF
-application = app.wsgifunc()
