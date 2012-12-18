@@ -13,7 +13,6 @@ import os
 import sys
 base = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(base+'/healthvault/healthvault')
-
 import datetime
 import healthvault
 import json
@@ -27,17 +26,6 @@ import urllib
 import flask
 import platform
 
-# Are we running on AppFog? (imprecise) - DRY!
-AF_PLATFORM = 'Linux-3.2.0-23-virtual-x86_64-with-Ubuntu-12.04-precise'
-if platform.platform() == AF_PLATFORM:
-    AF_P = True
-    SERVER_NAME = 'smart-hv-patient.aws.af.cm'
-    app.config['SERVER_NAME'] = SERVER_NAME
-    PORT=80
-else:
-    AF_P = False
-    PORT=8000
-
 # Note: using ./app for both the templates and static files
 # AF needs "application" here - DRY!
 application = app = flask.Flask(
@@ -47,6 +35,17 @@ application = app = flask.Flask(
     template_folder='app'
 )
 app.debug = True
+
+# Are we running on AppFog? (imprecise) - DRY!
+AF_PLATFORM = 'Linux-3.2.0-23-virtual-x86_64-with-Ubuntu-12.04-precise'
+if platform.platform() == AF_PLATFORM:
+    AF_P = True
+    SERVER_NAME = 'smart-hv-merge.aws.af.cm'
+    app.config['SERVER_NAME'] = SERVER_NAME
+    PORT=80
+else:
+    AF_P = False
+    PORT=8000
 
 ######################################################################
 

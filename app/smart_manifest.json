@@ -9,6 +9,6 @@
   "mode" : "ui",
   "scope" : "record",
 
-  "index" :  "http://smart-hv-merge.aws.af.cm/index.html",
+  "index" :  "http://smart-hv-merge.aws.af.cm/smartapp/index.html",
   "icon" :  "http://smart-hv-merge.aws.af.cm/static/img/icon.png"
 }
