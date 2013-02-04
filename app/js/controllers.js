@@ -2,10 +2,10 @@
 
 function Controller($scope, $http) {
     $scope.params = {
-      'wctoken': sessionStorage.getItem('wctoken'),
+      'person_id': sessionStorage.getItem('person_id'),
       'auth_token': sessionStorage.getItem('auth_token'),
       'shared_secret': sessionStorage.getItem('shared_secret'),
-      'record_id': sessionStorage.getItem('record_id')
+      'selected_record_id': sessionStorage.getItem('selected_record_id')
     };
     $scope.name = sessionStorage.getItem('name');
 
@@ -20,8 +20,7 @@ function Controller($scope, $http) {
             $scope.glucoses = glucoses;
           })
           .error(function(data, status) {
-            alert('Error in getGlucoseMeasurements.');
-            // debugger;
+             alert('Error in getGlucoseMeasurements');
           })
 
     $http.get('/getA1cs', {params: $scope.params})
@@ -34,8 +33,7 @@ function Controller($scope, $http) {
             $scope.A1cs = A1cs;
           })
           .error(function(data, status) {
-            alert('Error in getA1cs.');
-            // debugger;
+             alert('Error in getA1Cs');
           })
 };
 Controller.$inject = ['$scope', '$http'];
