@@ -13,18 +13,22 @@ import os
 import sys
 base = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(base+'/healthvault/healthvault')
-import datetime
 import healthvault
+
+import datetime
+import flask
 import json
+import logging
 import pdb
+import platform
 import random
 import settings
-from smart_client import oauth
-from smart_client.smart import SmartClient
+from   smart_client import oauth
+from   smart_client.smart import SmartClient
 import sqlite3
 import urllib
-import flask
-import platform
+
+logging.basicConfig(level=logging.DEBUG)
 
 # Note: using ./app for both the templates and static files
 # AF needs "application" here - DRY!
@@ -171,6 +175,9 @@ def index():
     footer = """</body></html>"""
 
     hv_ids = _get_hv_ids(client.record_id)
+
+    #logging.debug('person_id: %s, record_id %s', hv_ids['person_id'], hv_ids['record_id'])
+
     if hv_ids:
         # show something
         hvconn = healthvault.HVConn(offline_person_id=hv_ids['person_id'])
@@ -200,34 +207,52 @@ def index():
 @app.route('/getGlucoseMeasurements')
 def getGlucoseMeasurements():
     g = flask.request.args.get
+
+    #import pdb; pdb.set_trace();
+
     hvconn = healthvault.HVConn(user_auth_token=g('wctoken'),
         record_id=g('record_id'),
         auth_token=g('auth_token'),
         shared_secret=g('shared_secret'),
         get_person_info_p=False)
     hvconn.getGlucoseMeasurements()
+
     # don't use flask's builtin jsonify function... it creates
     # one big dict not an array for these
     resp = flask.make_response()
     resp.data = json.dumps(hvconn.person.glucoses)
+
+    if False:
+        resp.data = json.dumps([["2013-02-03T21:31:00", 10.0],
+            ["2013-02-03T20:46:00", 8.0], ["2013-01-08T16:43:00", 6.0],
+            ["2012-10-16T12:23:00", 10.0], ["2012-10-14T13:25:00", 4.0],
+            ["2012-10-13T17:13:00", 9.5], ["2012-10-13T17:13:00", 10.0],
+            ["2012-10-13T17:13:00", 8.5], ["2012-10-13T17:05:00", 9.0],
+            ["2012-10-24T15:00:00", 10.0], ["2012-10-24T07:00:00", 6.6],
+            ["2012-10-23T18:45:00", 6.5], ["2012-10-23T08:30:00", 7.0],
+            ["2012-10-22T19:30:00", 7.9], ["2012-10-22T08:30:00", 6.5],
+            ["2012-10-21T20:00:00", 6.6], ["2012-10-21T06:00:00", 6.6],
+            ["2012-10-20T20:00:00", 8.1], ["2012-10-20T07:00:00", 8.1],
+            ["2012-10-19T10:00:00", 5.5]])
+
     resp.mimetype = 'application/json'
     return resp
 
 @app.route('/getA1cs')
 def getA1cs():
     g = flask.request.args.get
-    hvconn = healthvault.HVConn(user_auth_token=g('wctoken'),
-        record_id=g('record_id'),
-        auth_token=g('auth_token'),
-        shared_secret=g('shared_secret'),
-        get_person_info_p=False)
-    hvconn.getGlucoseMeasurements()
+    #hvconn = healthvault.HVConn(user_auth_token=g('wctoken'),
+        #record_id=g('record_id'),
+        #auth_token=g('auth_token'),
+        #shared_secret=g('shared_secret'),
+        #get_person_info_p=False)
+    #hvconn.getGlucoseMeasurements()
     # don't use flask's builtin jsonify function... it creates
     # one big dict not an array for these
     resp = flask.make_response()
     # labs = client.get_lab_results()
     # mock
-    a1c = [["2012-09-30T10:00:00", 6]]
+    a1c = [["2012-09-30T10:00:00", 7]]
     resp.data = json.dumps(a1c)
     resp.mimetype = 'application/json'
     return resp

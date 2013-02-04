@@ -22,7 +22,9 @@
     <h3>Previous Measurements</h3>
     <div>
       <ul>
-        <li ng-repeat="glucose in glucoses"><code>{[{ glucose.when }]} &mdash; {[{ glucose.value }]} mmol/L</code></li>
+        <li ng-repeat="glucose in glucoses">
+          <code>{[{ glucose.when }]} &mdash; {[{ glucose.value }]} mmol/L</code>
+        </li>
       </ul>
     </div>
   </div>

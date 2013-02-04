@@ -13,7 +13,10 @@
 import os
 import sys
 base = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(base+'/healthvault/healthvault')
+sys.path.append(base+'/../healthvault/healthvault')
+sys.path.append(base+'/..')
+print sys.path
+
 import healthvault
 import settings
 import sqlite3
