@@ -13,8 +13,8 @@ FIXME
 - Create a second "mappings" table and don't overload requests
 
 
-SMART Microsoft HealthVault Merge App
---------------------------------------
+SMART Glucose Logbook: Clinican App
+===================================
 
 Arjun Sanyal <arjun.sanyal@childrens.harvard.edu>
 
