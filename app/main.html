@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>{[{name}]}'s Glucose Logbook</title>
+  <link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="/static/css/app.css"/>
 </head>
 <body>
@@ -10,7 +11,7 @@
   <div ng-controller="Controller">
     <h3>Glucose by Time of Day</h3>
     <div>
-      <glucose-day2 val='glucoses'></glucose-day>
+      <glucose-day val='glucoses'></glucose-day>
     </div>
 
     <h3>Glucose Histogram</h3>
@@ -37,6 +38,7 @@
     sessionStorage.setItem('shared_secret', '{{shared_secret}}');
   </script>
 
+  <script src="/static/lib/underscore-min.js"></script>
   <script src="/static/lib/angular/angular.js"></script>
   <script src="/static/lib/d3.v2.js"></script>
   <script src="/static/js/app.js"></script>
