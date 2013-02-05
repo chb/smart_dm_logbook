@@ -80,6 +80,7 @@ def _get_smart_client(smart_oauth_header):
     # 1. what container we're talking to
     try:
         SMART_SERVER_PARAMS['api_base'] = oa_params['smart_container_api_base']
+        #SMART_SERVER_PARAMS['api_base'] = 'http://sandbox-api.smartplatforms.org'
     except:
         return "Couldn't find 'smart_contianer_api_base' in %s" % smart_oauth_header
 
@@ -122,6 +123,9 @@ def _get_hv_ids(smart_record_id):
         return None
 
 def _create_connection_request(smart_record_id):
+    # The requests table is defined as:
+    # (datetime, random_external_id, smart_record_id, friendly_name, hv_person_id, hv_record_id)
+
     # TODO: should we use a combination of smart container
     # id and record_id here? what to use for container id?
     # Use a random external_id for now
@@ -164,7 +168,8 @@ def _send_hv_req_email():
 
 @app.route('/smartapp/index.html')
 def index():
-    client = _get_smart_client(flask.request.args.get('oauth_header', ''))
+    oauth_header = flask.request.args.get('oauth_header', '')
+    client = _get_smart_client(oauth_header)
     header = """
     <!DOCTYPE html>
     <html>
@@ -186,11 +191,12 @@ def index():
 
         return flask.render_template(
             'main.html',
-            name=hvconn.person.name,
-            person_id=hvconn.person.person_id,
-            selected_record_id=hvconn.person.selected_record_id,
-            auth_token=hvconn._auth_token,
-            shared_secret=hvconn._shared_secret
+            name = hvconn.person.name,
+            person_id = hvconn.person.person_id,
+            selected_record_id = hvconn.person.selected_record_id,
+            auth_token = hvconn._auth_token,
+            shared_secret = hvconn._shared_secret,
+            oauth_header = oauth_header
         )
     else:
         hv_id_code = _create_connection_request(client.record_id)
@@ -224,27 +230,19 @@ def getGlucoseMeasurements():
 
 @app.route('/getA1cs')
 def getA1cs():
+    # from the SMART container
     g = flask.request.args.get
-
-    # doing offline calls here, need offline_person_id
-    hvconn = healthvault.HVConn(
-        offline_person_id=g('person_id'),
-        record_id=g('selected_record_id'),
-        auth_token=g('auth_token'),
-        shared_secret=g('shared_secret'),
-        get_person_info_p=False
-    )
-
-    # use the SMART API
+    #client = _get_smart_client(g('oauth_header'))
+    #labs = client.get_lab_results()
+    #import pdb; pdb.set_trace()
     a1cs = [["2013-02-03T21:31:00", 7]]
 
     # don't use flask's jsonify; it creates a big dict but we want array
     resp = flask.make_response()
     resp.data = json.dumps(a1cs)
-
-
     resp.mimetype = 'application/json'
     return resp
+
 
 # Start Flask and run on port 80 for consistency with AF
 if __name__ == '__main__':
