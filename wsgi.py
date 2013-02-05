@@ -235,7 +235,7 @@ def getA1cs():
     #client = _get_smart_client(g('oauth_header'))
     #labs = client.get_lab_results()
     #import pdb; pdb.set_trace()
-    a1cs = [["2013-02-03T21:31:00", 7]]
+    a1cs = [["2013-02-03T21:31:00", 8.6]]
 
     # don't use flask's jsonify; it creates a big dict but we want array
     resp = flask.make_response()

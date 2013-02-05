@@ -20,6 +20,105 @@ angular.module('App.directives', [])
     };
   })
   // based on the mbostock's scatterplot http://bl.ocks.org/3887118
+  // with added A1c overlay
+  .directive('glucoseDayWithA1c', function() {
+    return {
+      restrict: 'E',
+      terminal: true,
+      scope: { val: '=' },
+      link: function (scope, element, attrs) {
+        function getDate(d) { return new Date(d); }
+        function getHour(d) {
+          var x = new Date(d)
+          // dates are in UTC, translate to local time
+          return x.getHours() + x.getTimezoneOffset() / 60;
+        }
+
+        var margin = {top: 20, right: 20, bottom: 30, left: 40},
+            width = 960 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
+
+        var x = d3.scale.linear().domain([0, 24]).range([0, width]).nice();
+
+        var y = d3.scale.linear().range([height, 0]);
+
+        var color = d3.scale.category10();
+
+        var xAxis = d3.svg.axis().scale(x).orient("bottom");
+        var yAxis = d3.svg.axis().scale(y).orient("left");
+
+        var svg = d3.select(element[0]).append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+          .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        // angular listener
+        scope.$watch('val', function(newVal, oldVal) {
+          if (!newVal) { return; }
+          svg.selectAll('*').remove();
+
+          // set the y domain after we have the data to auto scale
+          y.domain([0, d3.max(newVal, function(d) { return d.value; })]).nice();
+
+          svg.append("g")
+              .attr("class", "x axis")
+              .attr("transform", "translate(0," + height + ")")
+              .call(xAxis)
+            .append("text")
+              .attr("class", "label")
+              .attr("x", width)
+              .attr("y", -6)
+              .style("text-anchor", "end")
+              .text("Time of day");
+
+          svg.append("g")
+              .attr("class", "y axis")
+              .call(yAxis)
+             .append("text")
+              .attr("class", "label")
+              .attr("transform", "rotate(-90)")
+              .attr("y", 6)
+              .attr("dy", ".71em")
+              .style("text-anchor", "end")
+              .text("Glucose (mmol/L)")
+
+            svg.selectAll(".dot")
+                .data(newVal)
+              .enter().append("circle")
+                .attr("class", "dot")
+                .attr("r", 5)
+                .attr("cx", function(d) { return x(getHour(d.when)); })
+                .attr("cy", function(d) { return y(d.value); })
+                .style("fill", function(d) { return color(); });
+
+            // A1c overlay
+            var a1c_value = 8.6;
+            var rect_height = height / y.domain()[1] * a1c_value;
+            var rect_translate_y = height - rect_height;
+
+            svg.append("rect")
+               .attr("class", "a1c")
+               // scale the height of the rect using the y domain and a1c value
+               .attr("height", rect_height)
+               .attr("width", width)
+               .attr("transform", "translate(0," + rect_translate_y + ")")
+               .attr("x", 0)
+               .attr("y", 0)
+               .attr("fill", "gray")
+               .attr("opacity", "0.2")
+
+           svg.append("text")
+               .attr("class", "label")
+               .attr("x", width)
+               .attr("y", rect_translate_y)
+               .style("text-anchor", "end")
+               .text("Last A1c: " + a1c_value);
+        });
+      }
+    }
+  })
+  // based on the mbostock's scatterplot http://bl.ocks.org/3887118
   .directive('glucoseDay', function() {
     return {
       restrict: 'E',
