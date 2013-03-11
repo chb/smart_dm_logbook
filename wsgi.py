@@ -31,8 +31,7 @@ import urllib
 logging.basicConfig(level=logging.DEBUG)
 
 # Note: using ./app for both the templates and static files
-# AF needs "application" here - DRY!
-application = app = flask.Flask(
+application = app = flask.Flask(  # some PaaS need "application" here
     'wsgi',
     static_folder='app',
     static_url_path='/static',

@@ -2,7 +2,8 @@
 
 DEBUG = True
 HOST = '0.0.0.0'
-PORT = 5001
+PORT = 8000
+# PORT = 5001
 
 # App configuration (see README for details)
 # YOU WILL NEED TO CHANGE THESE FOR YOUR APP!
