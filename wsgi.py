@@ -28,8 +28,6 @@ from   smart_client.smart import SmartClient
 import sqlite3
 import urllib
 
-MOCK = False
-
 logging.basicConfig(level=logging.DEBUG)
 
 # Note: using ./app for both the templates and static files
@@ -40,18 +38,11 @@ application = app = flask.Flask(
     static_url_path='/static',
     template_folder='app'
 )
-app.debug = True
 
-# Are we running on AppFog? (imprecise) - DRY!
-AF_PLATFORM = 'Linux-3.2.0-23-virtual-x86_64-with-Ubuntu-12.04-precise'
-if platform.platform() == AF_PLATFORM:
-    AF_P = True
-    SERVER_NAME = 'smart-hv-merge.aws.af.cm'
-    app.config['SERVER_NAME'] = SERVER_NAME
-    PORT=80
+if settings.DEBUG:
+    app.debug = True
 else:
-    AF_P = False
-    PORT=8000
+    app.debug = False
 
 ######################################################################
 
@@ -246,5 +237,5 @@ def getA1cs():
 
 # Start Flask and run on port 80 for consistency with AF
 if __name__ == '__main__':
-    app.run(port=PORT)
+    app.run(host=settings.HOST, port=settings.PORT)
 
