@@ -1,6 +1,6 @@
 
-SMART Glucose Logbook: Clinican App
-===================================
+SMART Diabetes Logbook: Clinican App
+====================================
 
 Arjun Sanyal <arjun.sanyal@childrens.harvard.edu>
 
@@ -10,10 +10,10 @@ clinican facing apps.
 
 ---
 
-This is the clinican-facing side of the SMART Diabetes Logkbook pair of
+This is the clinican-facing side of the SMART Diabetes Logbook pair of
 apps. It implements a simple SMART REST app that establishes a
 connection between a patient record in a SMART container and a patient
-recrod in Microsoft HealthVault using the HealthVault [Patient
+record in Microsoft HealthVault using the HealthVault [Patient
 Connect][] API. Each connection request is stored in a persisent SQLite
 database and is later updated with the HealthVault patient and record
 ids by a polling script.
@@ -45,13 +45,13 @@ Requirements
   - rdfextras
 
 
-Setup
-=====
+Setup and Running
+=================
 
-- after cloning do a  `git submodule update --init --recursive`
-* To setup run `python setup.py` to create the SQLite3 request database
+- After cloning do: `git submodule update --init --recursive`
+- To setup: `python setup.py` to create the SQLite3 request database
   in `/data`
-* To run on port 8000 `python wsgi.py`
-* Then log in to the reference container: <http://sandbox.smartplatforms.org>
-* Launch the "My App" app, which will point at your locally
-  hosted version of this app
+- To run on port 8000: `python wsgi.py`
+- Then log in to the SMART container e.g. <http://sandbox.smartplatforms.org>
+- Launch the "My App" app, which will point at your locally
+  hosted version of this app running on port 8000

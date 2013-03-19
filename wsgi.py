@@ -1,5 +1,5 @@
 """
-SMART Merge App
+SMART Diabetes Logbook: Clinician App
 
 Arjun Sanyal <arjun.sanyal@childrens.harvard.edu>
 
@@ -234,7 +234,7 @@ def getA1cs():
     return resp
 
 
-# Start Flask and run on port 80 for consistency with AF
+# Start Flask
 if __name__ == '__main__':
     app.run(host=settings.HOST, port=settings.PORT)
 
