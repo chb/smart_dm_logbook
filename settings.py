@@ -1,9 +1,10 @@
 # SMART HV Merge app settings
 
+# Some versions of Flask won't run on 0.0.0.0 unless False
 DEBUG = True
+
 HOST = '0.0.0.0'
 PORT = 8000
-# PORT = 5001
 
 # App configuration (see README for details)
 # YOU WILL NEED TO CHANGE THESE FOR YOUR APP!
@@ -16,6 +17,6 @@ APP_PRIVATE_KEY = '0x00cb3f2f3f1fa7927936c366fcecb5c2479f0f4949b7f849433239409e8
 REQ_DB_DIR = './data'
 REQ_DB_FILENAME = 'requests.db'
 
-# Probably won't need to change these for development
+# "pre-production environment" HealthVault servers
 HV_SHELL_URL = 'https://account.healthvault-ppe.com'
 HV_SERVICE_SERVER = 'platform.healthvault-ppe.com'

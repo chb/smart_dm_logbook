@@ -28,7 +28,13 @@ from   smart_client.smart import SmartClient
 import sqlite3
 import urllib
 
-logging.basicConfig(level=logging.DEBUG)
+if settings.DEBUG:
+    app.debug = True
+    logging.basicConfig(level=logging.DEBUG)
+else:
+    app.debug = False
+    logging.basicConfig(level=logging.INFO)
+
 
 # Note: using ./app for both the templates and static files
 application = app = flask.Flask(  # some PaaS need "application" here
@@ -38,10 +44,6 @@ application = app = flask.Flask(  # some PaaS need "application" here
     template_folder='app'
 )
 
-if settings.DEBUG:
-    app.debug = True
-else:
-    app.debug = False
 
 ######################################################################
 
