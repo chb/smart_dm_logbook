@@ -1,0 +1,13 @@
+{
+  "name": "SMART Diabetes Logbook",
+  "description": "SMART Diabetes Loogbook app with HealthVault integration and \"merging\" of patient reported and clinical data",
+  "author": "Arjun Sanyal <arjun dot sanyal at childrens dot harvard dot edu",
+  "id": "diabetes-logbook@apps.smartplatforms.org",
+  "mode": "ui",
+  "scope": "record",
+  "index": "http://localhost:8000/",
+  "oauth_callback": "http://localhost:8000/authorize",
+  "icon": "http://localhost:8000/static/img/icon.png",
+  "smart_version": "0.6",
+  "version": ".1"
+}
