@@ -1,6 +1,5 @@
 
-SMART Diabetes Logbook: Clinican App
-====================================
+# SMART Diabetes Logbook: Clinican App
 
 Arjun Sanyal <arjun.sanyal@childrens.harvard.edu>
 
@@ -25,14 +24,12 @@ record in one combined interface.
 [Patient Connect](http://msdn.microsoft.com/en-us/library/jj551258.aspx)
 
 
-TODO
-====
+## TODO
 
 - Create a second "mappings" table and don't overload requests
 
 
-Requirements
-============
+## Requirements
   
 - Python 2.7 or above
 - SQLite3
@@ -45,12 +42,10 @@ Requirements
   - rdfextras
 
 
-Setup and Running
-=================
+## Setup and Running
 
 - After cloning do: `git submodule update --init --recursive`
-- To setup: `python setup.py` to create the SQLite3 request database
-  in `/data`
+- To setup: `python setup.py` to create the SQLite3 request database in `/data`
 - To run on port 8000: `python wsgi.py`
 - Then log in to the SMART container e.g. <http://sandbox.smartplatforms.org>
 - Launch the "My App" app, which will point at your locally
