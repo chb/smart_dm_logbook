@@ -3,30 +3,29 @@ SMART Diabetes Logbook: Clinician App
 
 Arjun Sanyal <arjun.sanyal@childrens.harvard.edu>
 
-FIXME
+TODO:
 - don't use global functions
 - in _get_smart_client use proper exceptions, not just string returns
 
 """
 
-import os
-import sys
-base = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(base+'/healthvault/healthvault')
-import healthvault
-
 import datetime
 import flask
 import json
 import logging
-import pdb
+import os
 import platform
 import random
 import settings
-from   smart_client import oauth
-from   smart_client.smart import SmartClient
+from smart_client import oauth
+from smart_client.smart import SmartClient
 import sqlite3
+import sys
 import urllib
+
+base = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(base+'/healthvault/healthvault')
+import healthvault
 
 if settings.DEBUG:
     app.debug = True
@@ -56,6 +55,7 @@ SMART_SERVER_PARAMS = {
     'api_base': None  # will fill this in later
 }
 
+
 def _get_smart_client(smart_oauth_header):
     if smart_oauth_header == '':
         return "No smart_oauth_header"
@@ -72,9 +72,9 @@ def _get_smart_client(smart_oauth_header):
     # 1. what container we're talking to
     try:
         SMART_SERVER_PARAMS['api_base'] = oa_params['smart_container_api_base']
-        #SMART_SERVER_PARAMS['api_base'] = 'http://sandbox-api.smartplatforms.org'
     except:
-        return "Couldn't find 'smart_contianer_api_base' in %s" % smart_oauth_header
+        return "Couldn't find 'smart_contianer_api_base' in %s" % \
+            smart_oauth_header
 
     # 2. what our app ID is
     try:
@@ -101,10 +101,15 @@ def _get_smart_client(smart_oauth_header):
 
 ######################################################################
 
+
 def _get_hv_ids(smart_record_id):
-    conn = sqlite3.connect(settings.REQ_DB_DIR + '/' + settings.REQ_DB_FILENAME)
+    conn = sqlite3.connect(
+        settings.REQ_DB_DIR + '/' + settings.REQ_DB_FILENAME
+    )
     c = conn.cursor()
-    s = 'select person_id, hv_record_id from requests where smart_record_id = ? limit 1'
+    s = ('select person_id, hv_record_id '
+         'from requests '
+         'where smart_record_id = ? limit 1')
     res = c.execute(s, (smart_record_id, ))
     row = res.fetchone()
     conn.commit()
@@ -114,14 +119,20 @@ def _get_hv_ids(smart_record_id):
     else:
         return None
 
+
 def _create_connection_request(smart_record_id):
     # The requests table is defined as:
-    # (datetime, random_external_id, smart_record_id, friendly_name, hv_person_id, hv_record_id)
+    # (datetime,
+    #  random_external_id,
+    #  smart_record_id,
+    #  friendly_name,
+    #  hv_person_id,
+    #  hv_record_id)
 
     # TODO: should we use a combination of smart container
     # id and record_id here? what to use for container id?
     # Use a random external_id for now
-    external_id = random.randint(1,9999999999)
+    external_id = random.randint(1, 9999999999)
     # TODO: get these
     friendly_name = 'Connection Request #' + str(external_id)
     secret_q = 'Your favorite color?'
@@ -136,27 +147,37 @@ def _create_connection_request(smart_record_id):
     )
 
     if hv_id_code:
-        conn = sqlite3.connect( settings.REQ_DB_DIR + '/' + settings.REQ_DB_FILENAME)
+        conn = sqlite3.connect(
+            settings.REQ_DB_DIR +
+            '/' +
+            settings.REQ_DB_FILENAME
+        )
         c = conn.cursor()
         s = 'insert into requests values (?, ?, ?, ?, ?, ?)'
         now = datetime.datetime.now().isoformat()
-        c.execute(s, (now, external_id, smart_record_id, friendly_name, '', ''))
+        c.execute(
+            s,
+            (now, external_id, smart_record_id, friendly_name, '', '')
+        )
         conn.commit()
         conn.close()
 
     return hv_id_code
 
+
 def _get_hv_req_url(hv_id_code):
     # just display code don't send email, could also print out
-    # url = 'https://shellhostname/redirect.aspx?target=CONNECT&targetqs=packageid%3dJKYZ-QNMN-VHRX-ZGNR-GZNH'
-    return settings.HV_SHELL_URL + \
-        "/redirect.aspx?target=CONNECT&targetqs=packageid%3d" + \
-        hv_id_code
+    # https://shell/redirect.aspx?target=CONNECT&targetqs=packageid%3dXYZ
+    return (settings.HV_SHELL_URL +
+            "/redirect.aspx?target=CONNECT&targetqs=packageid%3d" +
+            hv_id_code)
+
 
 def _send_hv_req_email():
     pass
 
 ######################################################################
+
 
 @app.route('/smartapp/index.html')
 def index():
@@ -175,7 +196,9 @@ def index():
 
     hv_ids = _get_hv_ids(client.record_id)
 
-    #logging.debug('person_id: %s, record_id %s', hv_ids['person_id'], hv_ids['record_id'])
+    #logging.debug('person_id: %s, record_id %s',
+        #hv_ids['person_id'],
+        #hv_ids['record_id'])
 
     if hv_ids:
         # show something
@@ -183,22 +206,23 @@ def index():
 
         return flask.render_template(
             'main.html',
-            name = hvconn.person.name,
-            person_id = hvconn.person.person_id,
-            selected_record_id = hvconn.person.selected_record_id,
-            auth_token = hvconn._auth_token,
-            shared_secret = hvconn._shared_secret,
-            oauth_header = oauth_header
+            name=hvconn.person.name,
+            person_id=hvconn.person.person_id,
+            selected_record_id=hvconn.person.selected_record_id,
+            auth_token=hvconn._auth_token,
+            shared_secret=hvconn._shared_secret,
+            oauth_header=oauth_header
         )
     else:
         hv_id_code = _create_connection_request(client.record_id)
         url = _get_hv_req_url(hv_id_code)
         # https://account.healthvault-ppe.com/redirect.aspx?target=CONNECT&targetqs=packageid%3dJKKR-XKMX-TRTZ-XPGH-CNZQ
         # ? or https://account.healthvault-ppe.com/patientconnect.aspx?action=GetQuestion
-        return header + '<p>Your id code is: ' +hv_id_code \
-            + '</p><p>Click <a target="_blank" href="' + url + \
-            '">here</a> to authorize this app to connect to your HealthVault account</p>' \
-            + footer
+        return (header + '<p>Your id code is: ' + hv_id_code +
+                '</p><p>Click <a target="_blank" href="' + url +
+                '">here</a> to authorize this app to connect to' +
+                'your HealthVault account</p>' + footer)
+
 
 @app.route('/getGlucoseMeasurements')
 def getGlucoseMeasurements():
@@ -220,13 +244,13 @@ def getGlucoseMeasurements():
     resp.mimetype = 'application/json'
     return resp
 
+
 @app.route('/getA1cs')
 def getA1cs():
     # from the SMART container
     g = flask.request.args.get
     #client = _get_smart_client(g('oauth_header'))
     #labs = client.get_lab_results()
-    #import pdb; pdb.set_trace()
     a1cs = [["2013-02-03T21:31:00", 8.6]]
 
     # don't use flask's jsonify; it creates a big dict but we want array
@@ -239,4 +263,3 @@ def getA1cs():
 # Start Flask
 if __name__ == '__main__':
     app.run(host=settings.HOST, port=settings.PORT)
-
