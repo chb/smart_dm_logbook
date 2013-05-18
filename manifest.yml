@@ -9,6 +9,6 @@ applications:
         description: Python WSGI Application
     instances: 1
     infra: aws
-    name: smart-hv-merge
+    name: smart-dm-logbook
     mem: 64M
     url: ${name}.${target-base}

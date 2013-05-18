@@ -1,5 +1,3 @@
-# SMART HV Merge app settings
-
 # Some versions of Flask won't run on 0.0.0.0 unless False
 DEBUG = True
 
