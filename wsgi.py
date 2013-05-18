@@ -3,6 +3,10 @@ SMART Diabetes Logbook: Clinician App
 
 Arjun Sanyal <arjun.sanyal@childrens.harvard.edu>
 
+To run against the sandbox.smartplatforms.org reference container, uncomment
+the "app_id" and "consumer_key" lines in _ENDPOINT and use "smartapp-secret"
+for the consumer_secret.
+
 TODO:
 - FIXME: Get the connection request secret question and answer from user
 - don't use global functions
@@ -33,8 +37,10 @@ import healthvault
 _ENDPOINT = {
     "url": "http://sandbox-api-v06.smartplatforms.org",
     "name": "SMART Sandbox API v0.6",
-    "app_id": "diabetes-logbook@apps.smartplatforms.org",
-    "consumer_key": "diabetes-logbook@apps.smartplatforms.org",
+    # "app_id": "diabetes-logbook@apps.smartplatforms.org",
+    "app_id": "my-app@apps.smartplatforms.org",
+    # "consumer_key": "diabetes-logbook@apps.smartplatforms.org",
+    "consumer_key": "my-app@apps.smartplatforms.org",
     "consumer_secret": "smartapp-secret"
 }
 
