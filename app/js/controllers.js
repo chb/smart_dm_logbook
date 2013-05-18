@@ -6,7 +6,6 @@ function Controller($scope, $http) {
       'auth_token': sessionStorage.getItem('auth_token'),
       'shared_secret': sessionStorage.getItem('shared_secret'),
       'selected_record_id': sessionStorage.getItem('selected_record_id'),
-      'oauth_header': sessionStorage.getItem('oauth_header')
     };
     $scope.name = sessionStorage.getItem('name');
 

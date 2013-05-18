@@ -1,9 +1,3 @@
-# Some versions of Flask won't run on 0.0.0.0 unless False
-DEBUG = True
-
-HOST = '0.0.0.0'
-PORT = 8000
-
 # App configuration (see README for details)
 # YOU WILL NEED TO CHANGE THESE FOR YOUR APP!
 
