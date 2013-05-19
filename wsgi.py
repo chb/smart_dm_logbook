@@ -348,13 +348,12 @@ def getA1cs():
         }
     """
     last_a1c = None
+    last_a1c_value = None
     results = labs.graph.query(sparql)
     for result in results:
         if result[0] == '4548-4':
             if not last_a1c or last_a1c[4] < result[4]:
                 last_a1c_value = result[2]
-
-    #print last_a1c
 
     # don't use flask's jsonify; it creates a big dict but we want array
     resp = flask.make_response()

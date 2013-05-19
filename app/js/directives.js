@@ -42,7 +42,6 @@ angular.module('App.directives', [])
             height = 500 - margin.top - margin.bottom;
 
         var x = d3.scale.linear().domain([0, 24]).range([0, width]).nice();
-
         var y = d3.scale.linear().range([height, 0]);
 
         var color = d3.scale.category10();
@@ -56,14 +55,15 @@ angular.module('App.directives', [])
           .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-
-        // angular listener
+        // angular listener for glucoses
         scope.$watch('val', function(newVal, oldVal) {
           if (!newVal) { return; }
           svg.selectAll('*').remove();
 
           // set the y domain after we have the data to auto scale
           y.domain([0, d3.max(newVal, function(d) { return d.value; })]).nice();
+
+          // console.log('y dom 1: ' + y.domain()[1]);
 
           svg.append("g")
               .attr("class", "x axis")
@@ -95,18 +95,29 @@ angular.module('App.directives', [])
                 .attr("cx", function(d) { return x(getHour(d.when)); })
                 .attr("cy", function(d) { return y(d.value); })
                 .style("fill", function(d) { return color(); });
+        });
 
-            // A1c overlay
-            var a1c_value = 8.6;
-            var rect_height = height / y.domain()[1] * a1c_value;
+        // angular listener for a1c
+        scope.$watch('a1c', function(newVal, oldVal) {
+          if (!newVal) { return; }
+            var a1c_value = parseFloat(newVal[1]+newVal[2]+newVal[3]);
+            var svg = d3.select("svg");
+
+           // console.log('y dom: ' + y.domain()[1])
+           // console.log('height: ' + height)
+
+            // FIXME: this can break if y-domain changes based on
+            // very high glucose values!!
+            var rect_height = (height / 10) * a1c_value;
             var rect_translate_y = height - rect_height;
 
             svg.append("rect")
                .attr("class", "a1c")
-               // scale the height of the rect using the y domain and a1c value
                .attr("height", rect_height)
                .attr("width", width)
-               .attr("transform", "translate(0," + rect_translate_y + ")")
+               //.attr("transform", "translate(0," + rect_translate_y + ")")
+               // nudge by left and top margins
+               .attr("transform", "translate(40," + (20 + rect_translate_y) + ")")
                .attr("x", 0)
                .attr("y", 0)
                .attr("fill", "gray")
@@ -114,6 +125,8 @@ angular.module('App.directives', [])
 
            svg.append("text")
                .attr("class", "label")
+               // more nudges
+               .attr("transform", "translate(35,15)")
                .attr("x", width)
                .attr("y", rect_translate_y)
                .style("text-anchor", "end")

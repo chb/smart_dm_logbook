@@ -12,7 +12,7 @@ function Controller($scope, $http) {
     $http.get('/getA1cs', {params: $scope.params})
           .success(function(data) {
             // just one A1c for now
-            $scope.A1c = data;
+            $scope.a1c = data;
           })
           .error(function(data, status) {
              alert('Error in getA1Cs');
