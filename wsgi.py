@@ -7,10 +7,11 @@ To run against the sandbox.smartplatforms.org reference container, uncomment
 the "app_id" and "consumer_key" lines in _ENDPOINT and use "smartapp-secret"
 for the consumer_secret.
 
-TODO:
+# TODO
 - FIXME: Get the connection request secret question and answer from user
 - don't use global functions
 - in _get_smart_client use proper exceptions, not just string returns
+- store hv params in flask session
 """
 
 import datetime
@@ -25,6 +26,9 @@ from smart_client.client import SMARTClient
 import sqlite3
 import sys
 import urllib
+
+# set the logging level for the healthvault module as well
+logging.basicConfig(level=logging.INFO)  # cf. .INFO; default is WARNING
 
 base = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(base+'/healthvault/healthvault')
@@ -45,7 +49,6 @@ _ENDPOINT = {
 }
 
 # Other Configuration (you shouldn't need to change this)
-logging.basicConfig(level=logging.DEBUG)  # cf. .INFO; default is WARNING
 application = app = flask.Flask(  # some PaaS need "application" here
     'wsgi',
     static_folder='app',
@@ -141,7 +144,7 @@ def _get_hv_ids(smart_record_id):
     row = res.fetchone()
     conn.commit()
     conn.close()
-    if row:
+    if row and row[0] != '' and row[1] != '':
         return {'person_id': row[0], 'record_id': row[1]}
     else:
         return None
@@ -252,16 +255,17 @@ def index():
     ### OAuth dance is complete, get to work! ###
 
     # attempt to get the person_id and hv_record_id from the database
-    hv_ids = _get_hv_ids(client.record_id)
+    hv_ids = _get_hv_ids(record_id)
 
     if hv_ids:
-        logging.debug('hv person_id: %s, hv record_id %s',
-                    hv_ids['person_id'],
-                    hv_ids['record_id'])
+        logging.info('record_id: %s = hv_record_id %s + hv_person_id %s',
+                     record_id,
+                     hv_ids['record_id'],
+                     hv_ids['person_id'])
 
         # if we have hv ids, init the connection to HV
         hvconn = healthvault.HVConn(offline_person_id=hv_ids['person_id'])
-        assert hvconn.person.name
+        assert hvconn.person.person_id, "Did you get authed requests?"
 
         return flask.render_template(
             'main.html',
@@ -303,6 +307,7 @@ def getGlucoseMeasurements():
 
     # doing offline calls here, need offline_person_id
     hvconn = healthvault.HVConn(
+        # TODO: store these in session
         offline_person_id=g('person_id'),
         auth_token=g('auth_token'),
         shared_secret=g('shared_secret'),
