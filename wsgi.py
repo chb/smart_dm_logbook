@@ -254,11 +254,11 @@ def index():
     # attempt to get the person_id and hv_record_id from the database
     hv_ids = _get_hv_ids(client.record_id)
 
-    logging.debug('hv person_id: %s, hv record_id %s',
-                  hv_ids['person_id'],
-                  hv_ids['record_id'])
-
     if hv_ids:
+        logging.debug('hv person_id: %s, hv record_id %s',
+                    hv_ids['person_id'],
+                    hv_ids['record_id'])
+
         # if we have hv ids, init the connection to HV
         hvconn = healthvault.HVConn(offline_person_id=hv_ids['person_id'])
         assert hvconn.person.name
