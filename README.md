@@ -45,7 +45,7 @@ record in one combined interface.
 ## Setup and Running
 
 - After cloning do: `git submodule update --init --recursive`
-- To setup: `python setup.py` to create the SQLite3 request database in `/data`
+- To setup: `python bin/setup.py` to create the SQLite3 request database in `/data`
 - To run on port 8000: `python wsgi.py`
 - Then log in to the SMART container e.g. <http://sandbox.smartplatforms.org>
 - Launch the "My App" app, which will point at your locally
