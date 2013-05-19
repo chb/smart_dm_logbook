@@ -25,9 +25,7 @@ import sqlite3
 DEBUG = True
 
 if __name__ == "__main__":
-
-    print "\n\nNOTE: call me from the top-level dir!\n\n"
-
+    print "\n# Getting Authed requests from HealtVault:"
     hv_conn = healthvault.HVConn()
     reqs = hv_conn.getAuthorizedConnectRequests()
     for req in reqs:
@@ -36,10 +34,9 @@ if __name__ == "__main__":
         external_id = req[2]  # the random request_id we provided
 
         if DEBUG:
-            print 'Got an authed request:'
-            print '>>> person_id: ' + person_id
-            print '>>> hv_record_id: ' + hv_record_id
-            print '>>> external_id: ' + external_id
+            print 'person_id: ' + person_id
+            print 'hv_record_id: ' + hv_record_id
+            print 'external_id: ' + external_id + '\n'
 
         # update the db with the person and record ids
         conn = sqlite3.connect(
@@ -49,6 +46,14 @@ if __name__ == "__main__":
         s = 'update requests set person_id = ?, hv_record_id = ? where external_id = ?'
         c.execute(s, (person_id, hv_record_id, external_id))
         conn.commit()
-        conn.close()
 
-    print """\nDone.."""
+    # show the smart id to hv id mappings
+    s = ('select smart_record_id, hv_record_id, person_id from requests')
+    res = c.execute(s)
+    rows = res.fetchall()
+    print '\n# Stored Mappings (smart_record_id = hv_record_id + person_id):'
+    for row in rows:
+        print row[0] + ' = ' + row[1] + ' + ' + row[2]
+
+    print '\n'
+    conn.close()
