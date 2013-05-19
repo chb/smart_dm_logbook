@@ -1,4 +1,8 @@
 # create the sqlite3 database and tables
+import os
+import sys
+base = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(base+'/..')
 
 import settings
 import sqlite3
