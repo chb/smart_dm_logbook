@@ -3,4 +3,4 @@
 	url = https://github.com/chb/smart_client_python.git
 [submodule "healthvault"]
 	path = healthvault
-	url = https://github.com/arjunsanyal/healthvault_py.git
+	url = https://github.com/chb/healthvault_py.git
