@@ -9,6 +9,14 @@ function Controller($scope, $http) {
     };
     $scope.name = sessionStorage.getItem('name');
 
+    $http.get('/getA1cs', {params: $scope.params})
+          .success(function(data) {
+            // just one A1c for now
+            $scope.A1c = data;
+          })
+          .error(function(data, status) {
+             alert('Error in getA1Cs');
+          })
 
     $http.get('/getGlucoseMeasurements', {params: $scope.params})
           .success(function(data) {
@@ -23,17 +31,5 @@ function Controller($scope, $http) {
              alert('Error in getGlucoseMeasurements');
           })
 
-    $http.get('/getA1cs', {params: $scope.params})
-          .success(function(data) {
-            // todo: have a consistent standard for this array or {}}?
-            var A1cs = [];
-            data.forEach(function(d) {
-              A1cs.push({'when': d[0], 'value': d[1]});
-            })
-            $scope.A1cs = A1cs;
-          })
-          .error(function(data, status) {
-             alert('Error in getA1Cs');
-          })
 };
 Controller.$inject = ['$scope', '$http'];

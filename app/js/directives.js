@@ -25,7 +25,10 @@ angular.module('App.directives', [])
     return {
       restrict: 'E',
       terminal: true,
-      scope: { val: '=' },
+      scope: {
+        val: '=',
+        a1c: '='
+      },
       link: function (scope, element, attrs) {
         function getDate(d) { return new Date(d); }
         function getHour(d) {
@@ -52,6 +55,7 @@ angular.module('App.directives', [])
             .attr("height", height + margin.top + margin.bottom)
           .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
 
         // angular listener
         scope.$watch('val', function(newVal, oldVal) {

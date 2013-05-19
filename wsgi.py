@@ -326,14 +326,40 @@ def getGlucoseMeasurements():
 
 @app.route('/getA1cs')
 def getA1cs():
-    # from the SMART container
-    g = flask.request.args.get
-    #labs = client.get_lab_results()
-    a1cs = [["2013-02-03T21:31:00", 8.6]]
+    client = _init_smart_client(flask.session.get('record_id'))
+    client.update_token(flask.session['acc_token'])
+    labs = client.get_lab_results()
+    sparql = """
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX sp: <http://smartplatforms.org/terms#>
+        PREFIX dcterms: <http://purl.org/dc/terms/>
+        SELECT  DISTINCT ?id ?loinc_title ?value ?unit ?date
+        WHERE {
+            ?lr rdf:type sp:LabResult.
+            ?lr sp:labName ?labName .
+            ?lr dcterms:date ?date .
+            ?labName dcterms:title ?loinc_title .
+            ?labName sp:code ?code .
+            ?code dcterms:identifier ?id .
+            ?lr sp:quantitativeResult ?quantitativeResult .
+            ?quantitativeResult sp:valueAndUnit ?valueAndUnit .
+            ?valueAndUnit sp:value ?value .
+            ?valueAndUnit sp:unit ?unit .
+        }
+    """
+    last_a1c = None
+    results = labs.graph.query(sparql)
+    for result in results:
+        if result[0] == '4548-4':
+            if not last_a1c or last_a1c[4] < result[4]:
+                last_a1c_value = result[2]
+
+    #print last_a1c
 
     # don't use flask's jsonify; it creates a big dict but we want array
     resp = flask.make_response()
-    resp.data = json.dumps(a1cs)
+    # just one A1c for now
+    resp.data = json.dumps(last_a1c_value)
     resp.mimetype = 'application/json'
     return resp
 
