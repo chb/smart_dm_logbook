@@ -5,9 +5,9 @@
   "id": "diabetes-logbook@apps.smartplatforms.org",
   "mode": "ui",
   "scope": "record",
-  "index": "http://localhost:8000/",
+  "index": "http://localhost:8000/smartapp/index.html",
   "oauth_callback": "http://localhost:8000/authorize",
   "icon": "http://localhost:8000/static/img/icon.png",
   "smart_version": "0.6",
-  "version": ".1"
+  "version": ".2"
 }
