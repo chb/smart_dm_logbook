@@ -6,7 +6,7 @@
   "mode": "ui",
   "scope": "record",
   "index": "http://localhost:8000/smartapp/index.html",
-  "oauth_callback": "http://localhost:8000/authorize",
+  "oauth_callback": "http://localhost:8000/smartapp/authorize",
   "icon": "http://localhost:8000/static/img/icon.png",
   "smart_version": "0.6",
   "version": ".2"
